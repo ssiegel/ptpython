@@ -71,6 +71,7 @@ from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator, Validator
 
 from .completer import CompletePrivateAttributes, HidePrivateCompleter, PythonCompleter
+from .eventloop import inputhook
 from .history_browser import PythonHistory
 from .key_bindings import (
     load_confirm_exit_bindings,
@@ -1097,7 +1098,9 @@ class PythonInput:
         # Run the UI.
         while True:
             try:
-                result = self.app.run(pre_run=pre_run, in_thread=True)
+                result = self.app.run(
+                    pre_run=pre_run, in_thread=False, inputhook=inputhook
+                )
 
                 if result.lstrip().startswith("\x1a"):
                     # When the input starts with Ctrl-Z, quit the REPL.
