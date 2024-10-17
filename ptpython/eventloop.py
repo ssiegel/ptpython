@@ -69,7 +69,30 @@ def _inputhook_tk(inputhook_context: InputHookContext) -> None:
             wait_using_polling()
 
 
+def _inputhook_qt(inputhook_context: InputHookContext) -> None:
+    """
+    Inputhook for Qt.
+    Run the Qt eventloop until prompt-toolkit needs to process the next input.
+    """
+    # Get the current Qt application.
+    from PySide6 import QtCore
+
+    app = QtCore.QCoreApplication.instance()
+
+    if app is not None:
+        while not inputhook_context.input_is_ready():
+            app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 100)
+
+            # Sleep to make the CPU idle, but not too long, so that the UI
+            # stays responsive.
+            time.sleep(0.01)
+
+
 def inputhook(inputhook_context: InputHookContext) -> None:
     # Only call the real input hook when the 'Tkinter' library was loaded.
     if "Tkinter" in sys.modules or "tkinter" in sys.modules:
         _inputhook_tk(inputhook_context)
+
+    # Only call the real input hook when the 'PySide6' library was loaded.
+    if "PySide6.QtCore" in sys.modules:
+        _inputhook_qt(inputhook_context)
